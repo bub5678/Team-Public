@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Custom Rating Pie Chart</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f9f9f9; }
+    form { margin-bottom: 20px; }
+    .chart-container { width: 500px; margin-top: 30px; }
+    ul { padding-left: 20px; }
+    table { margin-top: 30px; border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background-color: #eee; }
+  </style>
+</head>
+<body>
+
+  <h2>Submit Your Rating</h2>
+  <form id="ratingForm">
+    <label>
+      Name: <input type="text" id="name" required />
+    </label>
+    <br><br>
+    <label>
+      Rating:
+      <select id="rating">
+        <option value="1">Green</option>
+        <option value="2">Grellow</option>
+        <option value="3">Yellow</option>
+        <option value="4">Yamber</option>
+        <option value="5">Amber</option>
+        <option value="6">Ramber</option>
+        <option value="7">Red</option>
+      </select>
+    </label>
+    <br><br>
+    <button type="submit">Submit</button>
+  </form>
+
+  <div class="chart-container">
+    <canvas id="ratingChart"></canvas>
+  </div>
+
+  <h3>Submissions by Rating</h3>
+  <ul id="submissionsList"></ul>
+
+  <h3>Submission Log</h3>
+  <table id="logTable">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Rating</th>
+        <th>Time</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const ratingCounts = [0, 0, 0, 0, 0, 0, 0];
+    const ratingNames = [[], [], [], [], [], [], []];
+
+    const labels = ['Green', 'Grellow', 'Yellow', 'Yamber', 'Amber', 'Ramber', 'Red'];
+    const colors = ['#077a21', '#b6dc1c', '#fbf005', '#fbc705', '#fb9a05', '#b03a2e', '#7b241c'];
+
+    const ctx = document.getElementById('ratingChart').getContext('2d');
+    const ratingChart = new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Ratings',
+          data: ratingCounts,
+          backgroundColor: colors
+        }]
+      },
+      options: {
+        responsive: true
+      }
+    });
+
+    document.getElementById('ratingForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const rating = parseInt(document.getElementById('rating').value);
+
+      if (!name || rating < 1 || rating > 7) return;
+
+      ratingCounts[rating - 1]++;
+      ratingNames[rating - 1].push(name);
+      ratingChart.update();
+
+      updateSubmissionsList();
+      addToLog(name, labels[rating - 1]);
+
+      document.getElementById('name').value = '';
+      document.getElementById('rating').value = '1';
+    });
+
+    function updateSubmissionsList() {
+      const ul = document.getElementById('submissionsList');
+      ul.innerHTML = '';
+      ratingNames.forEach((names, index) => {
+        if (names.length > 0) {
+          const li = document.createElement('li');
+          li.innerHTML = `<strong>${labels[index]}</strong>: ${names.join(', ')}`;
+          ul.appendChild(li);
+        }
+      });
+    }
+
+    function addToLog(name, ratingLabel) {
+      const logTable = document.querySelector('#logTable tbody');
+      const row = document.createElement('tr');
+      const now = new Date().toLocaleString();
+      row.innerHTML = `
+        <td>${name}</td>
+        <td>${ratingLabel}</td>
+        <td>${now}</td>
+      `;
+      logTable.appendChild(row);
+    }
+  </script>
+
+</body>
+</html>
+
